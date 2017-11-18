@@ -1,0 +1,61 @@
+        \AddToShipoutPicture*{\BackgroundPicture{Images/traffic.jpg}}
+        
+        \AddToShipoutPicture*{\Tufrontpagefooter}
+        \setlength{\unitlength}{1cm}
+        %
+        % TITELBLOK EN OORMERK
+        \setlength{\fboxsep}{0cm}
+        \setlength{\unitlength}{\textwidth} 
+        \thispagestyle{empty}
+        \begin{picture}(1,0.45)%
+            \put(0,0){%
+                \colorbox[cmyk]{1,1,1,1}{\makebox(1,.45){}}
+           }%
+            % Title text (white)
+            \put(0.05,0.40){%
+                \begin{minipage}[t]{0.9\textwidth}%
+                    \centering%
+                    \Huge{\fontfamily{pbk}\selectfont%
+                    \setlength{\baselineskip}{1.3\baselineskip}%
+                    \color{white}Minor project EWI 3615TU}%
+                    
+            % Subtitle text        
+                    \vspace{2mm}%
+                    \Large{\fontfamily{pbk}\selectfont%
+                    \setlength{\baselineskip}{1.3\baselineskip}%
+                    \centering%
+                    \color{white}Dutch traffic analysis and traffic jam prediction
+                    
+                    }%
+                \end{minipage}%
+            }%
+            % Author text (cyan)
+            \put(0.12,0.05){\centering
+                \parbox[b]{0.9\textwidth}{%
+                    \large{\fontfamily{pbk}\selectfont%
+                    \color{cyan} \hspace{0.15\textwidth}%
+                    \vspace{40pt}\\
+                                        Jos\'e Ignacio de Alvear C\'ardenas \hspace{45 pt}4463196\\
+                                        Giulio Dacome \hspace{149pt}4476867\\
+                                        Thijs Volker \hspace{116pt}\\
+                                        Ptojr Lengkeek \hspace{145 pt} 4433866\\
+                                }%
+                }%
+            }%      
+            % cyan 'oormerk' box
+            \put(-0.25,-0.45){%
+                \colorbox{cyan}{\makebox(0.25,0.45){}}
+            }%
+            \put(-0.11,-0.42){%
+                \rotatebox{90}{%
+                    \Huge{\textsf{\color{white}TU Delft}}                    
+                }%
+            }%
+            \put(-0.05,-0.42){%
+                \rotatebox{90}{%
+                    \Large{\textsf{\color{white}Computer science}}
+                }%
+            }%
+        \end{picture}
+
+\newpage{}
