@@ -1,0 +1,228 @@
+\documentclass[hidelinks, 10pt, a4paper, titlepage, openany, oneside]{book}
+\usepackage{tikz}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{fullpage}
+\usepackage{siunitx}
+\usepackage{eso-pic} 
+\usepackage[english]{babel}
+\usepackage{titletoc}
+\usepackage{titlesec}
+\usepackage{float}
+\usepackage{acro}
+\usepackage{ctable}
+\usepackage{eurosym}
+\usepackage[utf8]{inputenc}
+\graphicspath{ {Figures/} }
+\usepackage{pdfpages}
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\usepackage[bookmarksdepth=3]{hyperref}
+\usepackage{caption}
+\usepackage{wrapfig}
+\usepackage{xfrac}
+\usepackage{amsmath}
+\usepackage{breqn}
+\usepackage{wasysym}
+\usepackage{rotating}
+\usepackage{gensymb}
+\usepackage{textcomp}
+\captionsetup[table]{skip=3pt}
+\linespread{0.9}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{nomencl}
+\usepackage{multicol}
+\usepackage{color}
+\usepackage{epstopdf}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage[export]{adjustbox}
+\usepackage{subcaption}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{multicol}
+\usepackage{listings}
+\usepackage{verbatim}
+\newcommand{\tabitem}{~~\llap{\textbullet}~~}
+
+
+
+
+\setcounter{tocdepth}{1}
+
+
+\geometry{
+ top = 17mm,
+ bottom = 17mm
+ }
+
+
+\titleformat{\chapter}{\normalfont\huge\bf}{\thechapter.}{18pt}{\huge\bf}
+\titlespacing{\chapter}{0pt}{0pt}{2.0ex plus .2ex}
+\titlespacing{\section}{0pt}{1ex}{1ex}
+\titlespacing{\subsection}{0pt}{1ex}{0.5ex}
+\titlespacing{\subsubsection}{0pt}{1ex}{0.5ex}
+\setlength\parindent{0pt}
+
+\makeatletter
+\newcommand\BackgroundPicture[1]{%
+    \setlength{\unitlength}{1pt}%
+    \put(0,\strip@pt\paperheight){%
+    \parbox[t][\paperheight]{\paperwidth}{%
+    \vfill
+    \centering\includegraphics[width=\paperwidth]{#1}
+    \vfill
+}}}
+\newcommand\Tufrontpagefooter{%
+  \setlength{\unitlength}{1pt}%
+  \put(0,\strip@pt\paperheight){%
+    \parbox[t][\paperheight]{\paperwidth}{%
+        \vfill
+            \begin{picture}(595,90)%
+                \linethickness{90pt}%
+                \put(0,45){\color{white} \line(1,0){614}}%
+                \linethickness{38pt}%
+                \put(0,19){\color{cyan} \line(1,0){614}}%
+                \linethickness{1pt}%
+                \put(0,90){\color{black} \line(1,0){614}}%
+                \put(0,14){\color{white} \line(1,0){614}}%
+                \put(0,0){\includegraphics[scale=0.45]{Images/TULogo.png}}%
+                \put(352,45){\textsf{Computer Science}}%
+                \put(500,20){\textsf{\color{white}\today}}
+            \end{picture}%
+        }
+    }
+}
+\newcommand\Tufoot{%
+  \setlength{\unitlength}{1pt}%
+  \put(0,\strip@pt\paperheight){%
+    \parbox[t][\paperheight]{\paperwidth}{%
+        \vfill
+            \begin{picture}(0,38)%
+                \linethickness{38pt}%
+                \put(0,19){\color{cyan} \line(1,0){614}}%
+                \linethickness{1pt}%
+                \put(0,14){\color{white} \line(1,0){614}}%
+                \put(300,20){\textnormal{\textsf{\color{white}\thepage}}}%
+                \put(390,20){\textnormal{\textsf{\color{white}Delft University of Technology}}}
+                \put(80,20){\textnormal{\textsf{Swarm intelligence assignment}}}
+            \end{picture}%
+        }
+    }
+}
+
+\pagestyle{fancy}
+\fancyhead{} \fancyfoot{}
+\lfoot{
+\AddToShipoutPicture*{\Tufoot}
+}
+\renewcommand{\headrulewidth}{0pt}
+%
+%
+\newcommand\blfootnote[1]{%
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \endgroup
+} %used for image credit
+\renewcommand\chapter{\if@openright\cleardoublepage\else\clearpage\fi
+                    \thispagestyle{fancy}%
+                    \global\@topnum\z@
+                    \@afterindentfalse
+                    \secdef\@chapter\@schapter}
+
+\makeatletter
+
+\@ifundefined{chapter}
+  {\def\wilh@nomsection{section}}
+  {\def\wilh@nomsection{chapter}}
+\def\thenomenclature{%
+  \begin{multicols}{2}[%
+    \csname\wilh@nomsection\endcsname*{\nomname}
+    \if@intoc\addcontentsline{toc}{\wilh@nomsection}{\nomname}\fi
+    \nompreamble]
+  \list{}{%
+    \labelwidth\nom@tempdim
+    \leftmargin\labelwidth
+    \advance\leftmargin\labelsep
+    \itemsep\nomitemsep
+    \let\makelabel\nomlabel}%
+}
+\def\endthenomenclature{%
+  \endlist
+  \end{multicols}
+  \nompostamble}
+\makeatother
+
+\newcommand{\nomunit}[1]{%
+\renewcommand{\nomentryend}{\hspace*{\fill}#1}}
+\makenomenclature
+
+%\renewcommand{\cleardoublepage}{}
+%\renewcommand{\clearpage}{}
+
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+\begin{document}
+
+\lstset{frame=tb,
+  language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{red},
+  stringstyle=\color{green},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Minor project EWI 3615TU:\\
+Dutch traffic analysis and traffic jam prediction}
+\author{\LARGE{group 2}}
+\pagenumbering{roman}
+\setcounter{page}{0}
+
+%titlepage
+\input{cover.tex}
+\input{title.tex}
+
+\frontmatter
+%Front pages
+
+\newpage
+\listoffigures
+\newpage
+\listoftables
+
+
+%Table of contents
+\tableofcontents
+
+
+
+\mainmatter
+
+%Main body of the report
+\input{Tasks/Task_1.tex}
+%\input{Tasks/Task_2.tex}
+
+
+
+%Bibliography
+\bibliographystyle{IEEEtran}
+
+
+%Appendices
+\appendix
+
+
+
+\end{document}
