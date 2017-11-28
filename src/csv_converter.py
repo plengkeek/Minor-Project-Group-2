@@ -31,18 +31,34 @@ class CSVConverter:
         sites_root = self.__xpath(self.__xml_tree, "//d:siteMeasurements")
 
         for i in range(len(sites_root)):
+            # create a partial function
             site_xpath = partial(self.__xpath, sites_root[i])
 
-            # get the relevant data from the .xml file
+            # get measured values elements
+            measured_values = self.__xpath(sites_root[i], ".//d:measuredValue[@index]")
+
+            # get the elements containing the time and id
+            time_reference = site_xpath("./d:measurementTimeDefault")[0]    # get measurement time default element
             site_reference = site_xpath("./d:measurementSiteReference")[0]  # get site reference element
-            vehicle_flow_rates = site_xpath(".//d:vehicleFlowRate")         # get vehicle flow rate element
 
-            # append the data to the buffer
-            self.__buffer_to_write.append(site_reference.attrib["id"])
+            # append time and id to the buffer
+            self.__buffer_to_write.append(time_reference.text + ";")
+            self.__buffer_to_write[i] += site_reference.attrib["id"] + ";"
 
-            for v in vehicle_flow_rates:
-                if int(v.text) > 0:
-                    self.__buffer_to_write[i] += ',' + v.text
+            for v in measured_values:
+                # get the basic data element
+                basic_data = self.__xpath(v, ".//d:basicData")[0]
+
+                # check if the measured value is average speed
+                if basic_data.attrib["{http://www.w3.org/2001/XMLSchema-instance}type"] == "TrafficSpeed":
+                    speed = self.__xpath(basic_data, ".//d:speed")[0]
+                    self.__buffer_to_write[i] += "-2," + speed.text + ";"
+                # check if the measured value is traffic flow
+                elif basic_data.attrib["{http://www.w3.org/2001/XMLSchema-instance}type"] == "TrafficFlow":
+                    flow = self.__xpath(basic_data, ".//d:vehicleFlowRate")[0]
+                    self.__buffer_to_write[i] += flow.text + ",-2;"
+                else:
+                    print("An error occurred")
 
         print("Done processing the content")
 
