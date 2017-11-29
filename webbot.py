@@ -1,6 +1,6 @@
 from selenium import webdriver
 from urllib import request, error
-import time
+import time, os
 from datetime import datetime, timedelta
 import requests
 from twocaptchaapi import TwoCaptchaApi
@@ -41,13 +41,16 @@ class STACKUploader(Thread):
             self.__connect()
             if not upload_q.empty():
                 file = upload_q.get()
+                print('Uploading...')
                 self.upload("historicaldata", file)
+                os.remove(file)
             time.sleep(30)
 
 
 class NDWWebBot(Thread):
-    def __init__(self):
+    def __init__(self, id):
         Thread.__init__(self)
+        self.id = id
         self.browser = webdriver.Chrome("/home/pleng/Desktop/chromedriver")
 
     def __open_browser(self):
@@ -69,24 +72,22 @@ class NDWWebBot(Thread):
         img = self.browser.find_element_by_id('CaptchaImage')
 
         location, size = img.location_once_scrolled_into_view, img.size
-        self.browser.save_screenshot('screenshot.png')
-        im = Image.open('screenshot.png')
+        self.browser.save_screenshot('screenshot' + str(self.id) + '.png')
+        im = Image.open('screenshot' + str(self.id) + '.png')
 
         src = img.get_attribute('src')
-        request.urlretrieve(src, 'captcha.png')
+        request.urlretrieve(src, 'captcha' + str(self.id) + '.png')
 
         left = location['x']
         top = location['y']
         right = location['x'] + size['width']
         bottom = location['y'] + size['height']
 
-        print(location['x'], location['y'])
-
         im = im.crop((left, top, right, bottom))
-        im.save('captcha.png')
+        im.save('captcha' + str(self.id) + '.png')
 
         api = TwoCaptchaApi('b51dc904b4f0afc3693977440d8e2e02')
-        with open('captcha.png', 'rb') as captcha_file:
+        with open('captcha' + str(self.id) + '.png', 'rb') as captcha_file:
             captcha = api.solve(captcha_file)
         answer = captcha.await_result()
         return answer
@@ -101,7 +102,7 @@ class NDWWebBot(Thread):
 
 
             result = self.__solve_captcha()
-            while len(result) != 2:
+            while len(result) > 2:
                 print(result)
                 result = self.__solve_captcha()
 
@@ -125,15 +126,3 @@ class NDWWebBot(Thread):
                 connected = True
                 print('Downloading...')
                 upload_q.put((start_date + '.zip'))
-
-
-bot1 = NDWWebBot()
-bot2 = NDWWebBot()
-bot3 = NDWWebBot()
-
-uploader = STACKUploader()
-
-bot1.start()
-bot2.start()
-bot3.start()
-uploader.start()
