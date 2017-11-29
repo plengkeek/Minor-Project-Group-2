@@ -20,7 +20,7 @@ start = datetime.strptime(start_date, "%d-%m-%Y")
 stop = datetime.strptime(end_date, "%d-%m-%Y")
 
 while start < stop:
-    download_q.put(('Configuratie', start.strftime("%d-%m-%Y"), start.strftime("%d-%m-%Y")))
+    download_q.put(('Intensiteiten en snelheden', start.strftime("%d-%m-%Y"), start.strftime("%d-%m-%Y")))
     start = start + timedelta(days=1)
 
 
@@ -38,6 +38,7 @@ class STACKUploader(Thread):
 
     def run(self):
         while True:
+            self.__connect()
             if not upload_q.empty():
                 file = upload_q.get()
                 self.upload("historicaldata", file)
@@ -47,7 +48,7 @@ class STACKUploader(Thread):
 class NDWWebBot(Thread):
     def __init__(self):
         Thread.__init__(self)
-        self.browser = webdriver.Chrome()
+        self.browser = webdriver.Chrome("/home/pleng/Desktop/chromedriver")
 
     def __open_browser(self):
         self.browser.get(('http://83.247.110.3/OpenDataHistorie'))
@@ -127,7 +128,12 @@ class NDWWebBot(Thread):
 
 
 bot1 = NDWWebBot()
+bot2 = NDWWebBot()
+bot3 = NDWWebBot()
+
 uploader = STACKUploader()
 
 bot1.start()
+bot2.start()
+bot3.start()
 uploader.start()
