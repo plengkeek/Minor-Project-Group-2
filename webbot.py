@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 from urllib import request, error
 import time, os, sys
 from datetime import datetime, timedelta
@@ -13,7 +14,7 @@ import random
 download_q = Queue()
 upload_q = Queue()
 
-start_date = "11-1-2017"
+start_date = "14-1-2017"
 end_date = "30-11-2017"
 
 start = datetime.strptime(start_date, "%d-%m-%Y")
@@ -63,8 +64,7 @@ class NDWWebBot(Thread):
         self.datatype = self.browser.find_element_by_id("productId")
         self.start_date = self.browser.find_element_by_id("fromDate")
         self.end_date = self.browser.find_element_by_id("untilDate")
-        self.end_time  =self.browser.find_element_by_id("untilTime")
-        self.next_button = self.browser.find_element_by_id("btnSubmit")
+        self.end_time = self.browser.find_element_by_id("untilTime")
 
     def __fill_form(self, data_type, start_date, end_data):
         self.datatype.send_keys(data_type)
@@ -117,7 +117,7 @@ class NDWWebBot(Thread):
 
     def run(self):
         time.sleep(random.random())
-        while True:
+        while not download_q.empty():
             self.__open_browser()
             data_type, start_date, end_data = download_q.get()
             print(data_type, start_date, end_data)
@@ -127,8 +127,8 @@ class NDWWebBot(Thread):
             result = self.__solve_captcha()
             answer_field = self.browser.find_element_by_id('CaptchaInputText')
             answer_field.send_keys(result)
+            answer_field.send_keys(Keys.ENTER)
 
-            self.next_button.click()
             link = self.browser.find_element_by_id("link").text
 
             connected = False
@@ -153,17 +153,11 @@ class NDWWebBot(Thread):
 
 
 uploader1 = STACKUploader(1)
-uploader2 = STACKUploader(2)
-uploader3 = STACKUploader(3)
-
 bot1 = NDWWebBot(1)
 bot2 = NDWWebBot(2)
 bot3 = NDWWebBot(3)
 
 uploader1.start()
-uploader2.start()
-uploader3.start()
-
 bot1.start()
 bot2.start()
 bot3.start()
