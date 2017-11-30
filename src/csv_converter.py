@@ -5,6 +5,7 @@ from functools import partial
 class CSVConverter:
     def __init__(self, file=None):
         self._buffer_to_write = []
+        # self.path =
 
         try:
             self._xml_tree = etree.parse(file)
@@ -15,7 +16,9 @@ class CSVConverter:
             print("Couldn't open the .xml file: " + file)
 
     def _write_to_file(self, file):
-        file = file[:-3]
+        file = file.split('\\')
+        file = file[-1]
+        file = "F:\Minor project DATA\Converted\\" + file[:-3]
         file += 'txt'
 
         with open(file, 'w') as write_file:

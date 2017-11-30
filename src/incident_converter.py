@@ -1,7 +1,6 @@
 from csv_converter import CSVConverter
 from functools import partial
 
-
 class IncidentConverter(CSVConverter):
     def __init__(self, file):
         CSVConverter.__init__(self, file)
@@ -27,4 +26,4 @@ class IncidentConverter(CSVConverter):
             self._buffer_to_write[i] += str(obstruction_txt)
 
 
-IncidentConverter('incidents.xml')
+# print(IncidentConverter('incidents.xml')._buffer_to_write)
