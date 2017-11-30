@@ -2,6 +2,8 @@ import ftplib
 from threading import Thread
 import time, os
 import easywebdav as wd
+import gzip
+from incident_converter import IncidentConverter
 
 
 '''''
@@ -44,6 +46,17 @@ class FTPStream(Thread):
                 file = open(file_name, 'wb')
                 self.ftp.retrbinary('RETR %s' % f, file.write)
                 file.close()
+
+                if f == "incidents.xml.gz":
+                    with gzip.open(file_name, 'rb') as compressed:
+                        with open(file_name[:-3], 'wb') as decompressed:
+                            for line in compressed:
+                                decompressed.write(line)
+
+                    IncidentConverter(file_name[:-3])
+                    os.remove(file_name) # Downloaded file
+                    os.remove(file_name[:-3]) # Decompressed file
+                    file_name = file_name[:-6] + 'txt'
 
                 # Uploading to STACK
                 self.stack.upload(file_name, "/remote.php/webdav/" + f.split('.')[0] + '/' + file_name)
