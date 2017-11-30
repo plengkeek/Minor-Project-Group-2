@@ -1,20 +1,20 @@
 from selenium import webdriver
 from urllib import request, error
-import time, os
+import time, os, sys
 from datetime import datetime, timedelta
 import requests
 from twocaptchaapi import TwoCaptchaApi
-import time
 from PIL import Image
 from threading import Thread
 from queue import Queue
 import easywebdav as wd
+import random
 
 download_q = Queue()
 upload_q = Queue()
 
-start_date = "10-1-2017"
-end_date = "29-11-2017"
+start_date = "11-1-2017"
+end_date = "30-11-2017"
 
 start = datetime.strptime(start_date, "%d-%m-%Y")
 stop = datetime.strptime(end_date, "%d-%m-%Y")
@@ -41,7 +41,7 @@ class STACKUploader(Thread):
             self.__connect()
             if not upload_q.empty():
                 file = upload_q.get()
-                print('Uploading...')
+                print('Uploading' + file + '...')
                 self.upload("historicaldata", file)
                 os.remove(file)
             time.sleep(30)
@@ -104,7 +104,18 @@ class NDWWebBot(Thread):
             answer = self.__solve_captcha()
         return answer
 
+    def reporthook(self, count, block_size, total_size):
+        global start_time
+        if count == 0:
+            start_time = time.time()
+            return
+        duration = time.time() - start_time
+        progress_size = int(count * block_size)
+        sys.stdout.write("\r... %d MB, %d seconds passed" %(progress_size / (1024 * 1024), duration))
+        sys.stdout.flush()
+
     def run(self):
+        time.sleep(random.random())
         while True:
             self.__open_browser()
             data_type, start_date, end_data = download_q.get()
@@ -123,8 +134,7 @@ class NDWWebBot(Thread):
             while not connected:
                 try:
                     # Download the file
-                    print(link)
-                    request.urlretrieve(link, start_date + '.zip')
+                    request.urlretrieve(link, start_date + '.zip', self.reporthook)
 
                     # Sometimes it downloads a empty file
                     file_size = os.stat(start_date + '.zip').st_size
@@ -134,7 +144,6 @@ class NDWWebBot(Thread):
 
                     connected = True
                 except:
-                    print('Link still unavailable')
                     time.sleep(30)
                     continue
 
@@ -143,6 +152,10 @@ class NDWWebBot(Thread):
 
 uploader = STACKUploader()
 bot1 = NDWWebBot(1)
+bot2 = NDWWebBot(2)
+bot3 = NDWWebBot(3)
 
 uploader.start()
 bot1.start()
+bot2.start()
+bot3.start()
