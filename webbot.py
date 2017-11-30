@@ -1,9 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from urllib import request, error
-import time, os, sys
+from urllib import request
+import time, os
 from datetime import datetime, timedelta
-import requests
 from twocaptchaapi import TwoCaptchaApi
 from PIL import Image
 from threading import Thread
@@ -44,7 +43,7 @@ class STACKUploader(Thread):
             self.__connect()
             if not upload_q.empty():
                 file = upload_q.get()
-                print('Uploading' + file + '...')
+                print('Uploading ' + file + '...')
                 self.upload("historicaldata", file)
                 os.remove(file)
             time.sleep(30)
@@ -92,12 +91,12 @@ class NDWWebBot(Thread):
         im.save('captcha' + str(self.id) + '.png')
 
         api = TwoCaptchaApi('b51dc904b4f0afc3693977440d8e2e02')
-        with open('captcha' + str(self.id) + '.png', 'rb') as captcha_file:
-            captcha = api.solve(captcha_file)
 
         answer = None
         while answer is None:
             try:
+                with open('captcha' + str(self.id) + '.png', 'rb') as captcha_file:
+                    captcha = api.solve(captcha_file)
                 answer = captcha.await_result()
             except:
                 continue
@@ -112,8 +111,8 @@ class NDWWebBot(Thread):
             return
         duration = time.time() - self.start_time
         progress_size = int(count * block_size)
-        if count % 100 == 0:
-            print("Thread: " + str(self.id) + "... %d MB, %d seconds passed" %(progress_size / (1024 * 1024), duration))
+        if count % 1000 == 0:
+            print("Thread: " + str(self.id) + " Downloaded: %d MB, %d seconds passed" %(progress_size / (1024 * 1024), duration))
 
     def run(self):
         time.sleep(random.random())
@@ -122,9 +121,11 @@ class NDWWebBot(Thread):
             data_type, start_date, end_data = download_q.get()
             print(data_type, start_date, end_data)
             self.__fill_form(data_type, start_date, end_data)
-            print('Solving Captcha...')
 
+            print('Solving Captcha...')
             result = self.__solve_captcha()
+            print('Captcha Solved')
+
             answer_field = self.browser.find_element_by_id('CaptchaInputText')
             answer_field.send_keys(result)
             answer_field.send_keys(Keys.ENTER)
@@ -139,9 +140,9 @@ class NDWWebBot(Thread):
 
                     # Sometimes it downloads a empty file
                     file_size = os.stat(start_date + '.zip').st_size
-                    if file_size <= 100000000:
+                    if file_size <= 800000000:
                         os.remove(start_date + '.zip')
-                        raise Exception('File to small')
+                        raise Exception('Downloading again')
 
                     connected = True
                 except:
