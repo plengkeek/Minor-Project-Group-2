@@ -60,12 +60,15 @@ class NDWWebBot(Thread):
         self.datatype = self.browser.find_element_by_id("productId")
         self.start_date = self.browser.find_element_by_id("fromDate")
         self.end_date = self.browser.find_element_by_id("untilDate")
+        self.end_time  =self.browser.find_element_by_id("untilTime")
         self.next_button = self.browser.find_element_by_id("btnSubmit")
+
 
     def __fill_form(self, data_type, start_date, end_data):
         self.datatype.send_keys(data_type)
         self.start_date.send_keys(start_date)
         self.end_date.send_keys(end_data)
+        self.end_time.click()
 
     def __solve_captcha(self):
         # Save the captcha to file
@@ -89,7 +92,16 @@ class NDWWebBot(Thread):
         api = TwoCaptchaApi('b51dc904b4f0afc3693977440d8e2e02')
         with open('captcha' + str(self.id) + '.png', 'rb') as captcha_file:
             captcha = api.solve(captcha_file)
-        answer = captcha.await_result()
+
+        answer = None
+        while answer is None:
+            try:
+                answer = captcha.await_result()
+            except:
+                continue
+
+        if len(answer) > 2:
+            answer = self.__solve_captcha()
         return answer
 
     def run(self):
@@ -100,15 +112,9 @@ class NDWWebBot(Thread):
             self.__fill_form(data_type, start_date, end_data)
             print('Solving Captcha...')
 
-
             result = self.__solve_captcha()
-            while len(result) > 2:
-                print(result)
-                result = self.__solve_captcha()
-
             answer_field = self.browser.find_element_by_id('CaptchaInputText')
             answer_field.send_keys(result)
-
 
             self.next_button.click()
             link = self.browser.find_element_by_id("link").text
@@ -117,12 +123,26 @@ class NDWWebBot(Thread):
             while not connected:
                 try:
                     # Download the file
+                    print(link)
                     request.urlretrieve(link, start_date + '.zip')
-                except error.URLError:
+
+                    # Sometimes it downloads a empty file
+                    file_size = os.stat(start_date + '.zip').st_size
+                    if file_size <= 100000000:
+                        os.remove(start_date + '.zip')
+                        raise Exception('File to small')
+
+                    connected = True
+                except:
                     print('Link still unavailable')
                     time.sleep(30)
                     continue
 
-                connected = True
-                print('Downloading...')
-                upload_q.put((start_date + '.zip'))
+            upload_q.put((start_date + '.zip'))
+            time.sleep(10)
+
+uploader = STACKUploader()
+bot1 = NDWWebBot(1)
+
+uploader.start()
+bot1.start()
