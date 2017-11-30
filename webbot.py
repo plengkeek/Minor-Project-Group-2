@@ -25,9 +25,10 @@ while start < stop:
 
 
 class STACKUploader(Thread):
-    def __init__(self):
+    def __init__(self, id):
         Thread.__init__(self)
         self.stack = None
+        self.id = id
 
     def __connect(self):
         self.stack = wd.connect(host="plengkeek.stackstorage.com", protocol="https", verify_ssl=True,
@@ -37,6 +38,7 @@ class STACKUploader(Thread):
         self.stack.upload(file, "/remote.php/webdav/" + folder + '/' + file)
 
     def run(self):
+        time.sleep(random.random())
         while True:
             self.__connect()
             if not upload_q.empty():
@@ -51,6 +53,7 @@ class NDWWebBot(Thread):
     def __init__(self, id):
         Thread.__init__(self)
         self.id = id
+        self.start_time = 0
         self.browser = webdriver.Chrome("/home/pleng/Desktop/chromedriver")
 
     def __open_browser(self):
@@ -62,7 +65,6 @@ class NDWWebBot(Thread):
         self.end_date = self.browser.find_element_by_id("untilDate")
         self.end_time  =self.browser.find_element_by_id("untilTime")
         self.next_button = self.browser.find_element_by_id("btnSubmit")
-
 
     def __fill_form(self, data_type, start_date, end_data):
         self.datatype.send_keys(data_type)
@@ -105,14 +107,13 @@ class NDWWebBot(Thread):
         return answer
 
     def reporthook(self, count, block_size, total_size):
-        global start_time
         if count == 0:
-            start_time = time.time()
+            self.start_time = time.time()
             return
-        duration = time.time() - start_time
+        duration = time.time() - self.start_time
         progress_size = int(count * block_size)
-        sys.stdout.write("\r... %d MB, %d seconds passed" %(progress_size / (1024 * 1024), duration))
-        sys.stdout.flush()
+        if count % 100 == 0:
+            print("Thread: " + str(self.id) + "... %d MB, %d seconds passed" %(progress_size / (1024 * 1024), duration))
 
     def run(self):
         time.sleep(random.random())
@@ -150,12 +151,19 @@ class NDWWebBot(Thread):
             upload_q.put((start_date + '.zip'))
             time.sleep(10)
 
-uploader = STACKUploader()
+
+uploader1 = STACKUploader(1)
+uploader2 = STACKUploader(2)
+uploader3 = STACKUploader(3)
+
 bot1 = NDWWebBot(1)
 bot2 = NDWWebBot(2)
 bot3 = NDWWebBot(3)
 
-uploader.start()
+uploader1.start()
+uploader2.start()
+uploader3.start()
+
 bot1.start()
 bot2.start()
 bot3.start()
