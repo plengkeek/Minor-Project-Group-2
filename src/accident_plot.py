@@ -3,22 +3,25 @@ import numpy as np
 import scipy.cluster.vq as clust
 import matplotlib.pyplot as plt
 from incident_converter import IncidentConverter
+from mpl_toolkits.basemap import Basemap
+import matplotlib as mpl
+import matplotlib.cm as cm
 
 k = int(input("Enter the number of clusters to create: [1-100]"))
-input("System ready. Press ENTER to start")
+# raw_input("System ready. Press ENTER to start")
 
-file_path = 'F:\Minor project DATA\Converted\\'
-XML_path = 'F:\Minor project DATA\Accidents\\'
+file_path = 'C:\Users\TUDelft SID\Documents\\2017-2018\\2nd quarter\Minorproject software design and application\Converted\\'
+# XML_path = 'D:\Minor project DATA\Accidents\\'
 
 files = os.listdir(file_path)
-XMLfiles = os.listdir(XML_path)
+# XMLfiles = os.listdir(XML_path)
 
 print("Reading files ...")
 # for file in XML_files:
 #     IncidentConverter(XML_path+file)
 # print (files)
-
-for file in files:
+n_files = files[:]
+for file in n_files:
     file_info = os.stat(file_path+file)
     if file_info.st_size == 0:
         os.remove(file_path+file)
@@ -26,27 +29,25 @@ for file in files:
         del files[index_to_delete]
 
 crashes = np.genfromtxt(file_path+files[0],delimiter=';',dtype='str')
-longitud = len(crashes)
-for i in range(1,len(files)):
-    progress = (i/len(files))*100
+
+print len(files)
+for i in range(1,len(n_files)):
+    progress = (float(i)/len(n_files))*100
     if progress%5 < 0.013:
         print("Progress is "+str(np.floor(progress))+" %")
         continue
 
     data = np.genfromtxt(file_path+files[i],delimiter=';',dtype='str')
-    longitud = longitud + len(data)
     crashes = np.vstack((crashes,data))
 
 del files
-del XMLfiles
+# del XMLfiles
 
 
 final = np.unique(crashes,axis=0)
 del crashes
 result = np.sort(final[:,0])
-# print(len(result))
-# print (longitud)
-# # print(final)
+
 
 print("Processing results ... ")
 time = final[:,0]
@@ -83,11 +84,63 @@ cluster_array = np.array(groups)
 for i in groups:
     cluster_size.append(len(i))
 del groups
+#
+# print(''' ------------- RESULTS -------------
+# In the considered time period, there have been '''+str(len(coordinates))+''' crashes.
+#
+# ... showing plot of main critical areas ...''')
 
-print(''' ------------- RESULTS ------------- 
-In the considered time period, there have been '''+str(len(coordinates))+''' crashes.
+# plt.plot(critical[0][:,1],critical[0][:,0],'ro')
+# plt.show()
 
-... showing plot of main critical areas ...''')
+map = Basemap(projection='merc', lat_0=1.65, lon_0=52.10,
+              resolution = 'f', area_thresh = 0.000001,
+                         llcrnrlon = 3.2, llcrnrlat = 50.5,
+                                                          urcrnrlon = 7.3, urcrnrlat = 53.8)
 
-plt.plot(critical[0][:,1],critical[0][:,0],'ro')
+map.drawcoastlines(color = "darkblue")
+map.drawcountries(color='k')
+map.fillcontinents(color='wheat')
+map.drawmapboundary()
+
+
+lons = coordinates[:,1]
+lats = coordinates[:,0]
+x, y = map(lons, lats)
+map.plot(x, y, 'ro', markersize=2)
+
+#######################################################################################################################
+# # Floats between 0 and 20
+# indexList = cluster_size
+# minIndex = min(indexList)
+# maxIndex = max(indexList)
+#
+#
+# # Figure out colors for each index
+# norm = mpl.colors.Normalize(vmin=minIndex, vmax=maxIndex, clip=True)
+# mapper = cm.ScalarMappable(norm=norm, cmap='RdYlBu')
+#
+# gridIndexDict = []
+# for key in indexList:
+#     value = mapper.to_rgba(key)
+#     gridIndexDict.append(value)
+#
+# new_colors = []
+# for j in range(len(indexList)):
+#     color = gridIndexDict[j]
+#     rgb1 = color[0]
+#     rgb2 = color[1]
+#     rgb3 = color[2]
+#     new_color = (rgb1,rgb2,rgb3)
+#     new_colors.append(new_color)
+# mapper.set_array(indexList)
+# plt.colorbar(mapper)
+#######################################################################################################################
+
+
+for crash in range(len(critical[0])):
+    size = (float(cluster_size[crash])/max(cluster_size))
+    x,y =map(critical[0][crash,1],critical[0][crash,0])
+    map.plot(x,y,'go',markersize=size*25, alpha = 0.5)
+
 plt.show()
