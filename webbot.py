@@ -111,8 +111,16 @@ class NDWWebBot(Thread):
             return
         duration = time.time() - self.start_time
         progress_size = int(count * block_size)
+        percent = min(int(count * block_size * 100 / total_size), 100)
+        transfer_rate = (float(count * block_size) / 1000) / duration  # kbytes/s
+
+        if duration > 7200:
+            raise Exception('Download took too long')
+
         if count % 1000 == 0:
-            print("Thread: " + str(self.id) + " Downloaded: %d MB, %d seconds passed" %(progress_size / (1024 * 1024), duration))
+            print(datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
+                  + " Thread: " + str(self.id) + " ...%d%%, %d MB, %d KB/s, %d seconds passed" %
+                  (percent, progress_size / (1024 * 1024), transfer_rate, duration))
 
     def run(self):
         time.sleep(random.random())
