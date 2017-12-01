@@ -5,9 +5,9 @@ from csv_converter import CSVConverter
 
 
 class ConvertThread(Thread):
-    def __init__(self):
+    def __init__(self, process_queue: ProcessQueue):
         Thread.__init__(self)
-        self.__queue = ProcessQueue()
+        self._process_queue = process_queue
 
         self.no_of_cpus = 8
 
@@ -25,7 +25,7 @@ class ConvertThread(Thread):
 
         while True:
             if len(active_children()) < self.no_of_cpus:
-                next_file = self.__queue.get()
+                next_file = self._process_queue.get()
 
                 no_of_processes += 1
                 current_id = worker_id(self.no_of_cpus, current_id)
