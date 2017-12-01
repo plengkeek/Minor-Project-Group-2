@@ -5,6 +5,7 @@ import timeit
 
 
 def writer(queue):
+    """"Writes list of files that are processed"""
     files = ['two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']*8
 
     for file in files:
