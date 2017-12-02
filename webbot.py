@@ -13,14 +13,15 @@ import random
 download_q = Queue()
 upload_q = Queue()
 
-start_date = "14-1-2017"
-end_date = "30-11-2017"
+start = datetime.strptime("9-2-2017", "%d-%m-%Y")
+stop = datetime.strptime("30-11-2017", "%d-%m-%Y")
 
-start = datetime.strptime(start_date, "%d-%m-%Y")
-stop = datetime.strptime(end_date, "%d-%m-%Y")
-
+download_q.put(('historicaldata/intensityandspeed', 'Intensiteiten en snelheden', '31-1-2017', '31-1-2017'))
+download_q.put(('historicaldata/intensityandspeed', 'Intensiteiten en snelheden', '2-02-2017', '2-02-2017'))
 while start < stop:
-    download_q.put(('Intensiteiten en snelheden', start.strftime("%d-%m-%Y"), start.strftime("%d-%m-%Y")))
+    download_q.put(('historicaldata/intensityandspeed', 'Intensiteiten en snelheden', start.strftime("%d-%m-%Y"),
+                    start.strftime("%d-%m-%Y")))
+    download_q.put(('historicaldata/traveltime', 'Reistijden', start.strftime("%d-%m-%Y"), start.strftime("%d-%m-%Y")))
     start = start + timedelta(days=1)
 
 
@@ -31,8 +32,8 @@ class STACKUploader(Thread):
         self.id = id
 
     def __connect(self):
-        self.stack = wd.connect(host="plengkeek.stackstorage.com", protocol="https", verify_ssl=True,
-                                username='projectgroup', password='wearethebest')
+        self.stack = wd.connect(host="WEBADRESS", protocol="https", verify_ssl=True,
+                                username='ACCOUNTNAME', password='PASSWORD')
 
     def upload(self, folder, file):
         self.stack.upload(file, "/remote.php/webdav/" + folder + '/' + file)
@@ -42,9 +43,11 @@ class STACKUploader(Thread):
         while True:
             self.__connect()
             if not upload_q.empty():
-                file = upload_q.get()
+                folder, file = upload_q.get()
                 print('Uploading ' + file + '...')
-                self.upload("historicaldata", file)
+                self.upload(folder, file)
+                print(datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
+                  + " Thread: " + str(self.id) + ' Finished Uploading ' + file + '...')
                 os.remove(file)
             time.sleep(30)
 
@@ -99,6 +102,7 @@ class NDWWebBot(Thread):
                     captcha = api.solve(captcha_file)
                 answer = captcha.await_result()
             except:
+                answer = None
                 continue
 
         if len(answer) > 2:
@@ -111,7 +115,7 @@ class NDWWebBot(Thread):
             return
         duration = time.time() - self.start_time
         progress_size = int(count * block_size)
-        percent = min(int(count * block_size * 100 / total_size), 100)
+        total = total_size / (1024 * 1024)
         transfer_rate = (float(count * block_size) / 1000) / duration  # kbytes/s
 
         if duration > 7200:
@@ -119,20 +123,23 @@ class NDWWebBot(Thread):
 
         if count % 1000 == 0:
             print(datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
-                  + " Thread: " + str(self.id) + " ...%d%%, %d MB, %d KB/s, %d seconds passed" %
-                  (percent, progress_size / (1024 * 1024), transfer_rate, duration))
+                  + " Thread: " + str(self.id) + " ...%d/%d MB, %d KB/s, %d seconds passed" %
+                  (progress_size / (1024 * 1024), total, transfer_rate, duration))
 
     def run(self):
         time.sleep(random.random())
         while not download_q.empty():
             self.__open_browser()
-            data_type, start_date, end_data = download_q.get()
-            print(data_type, start_date, end_data)
+            folder, data_type, start_date, end_data = download_q.get()
+            print(datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
+                  + " Thread: " + str(self.id) + ' ' + data_type, start_date, end_data)
             self.__fill_form(data_type, start_date, end_data)
 
-            print('Solving Captcha...')
+            print(datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
+                  + " Thread: " + str(self.id) + ' Solving Captcha...')
             result = self.__solve_captcha()
-            print('Captcha Solved')
+            print(datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
+                  + " Thread: " + str(self.id) + ' Captcha Solved')
 
             answer_field = self.browser.find_element_by_id('CaptchaInputText')
             answer_field.send_keys(result)
@@ -157,11 +164,11 @@ class NDWWebBot(Thread):
                     time.sleep(30)
                     continue
 
-            upload_q.put((start_date + '.zip'))
+            upload_q.put((folder, start_date + '.zip'))
             time.sleep(10)
 
 
-uploader1 = STACKUploader(1)
+uploader1 = STACKUploader(4)
 bot1 = NDWWebBot(1)
 bot2 = NDWWebBot(2)
 bot3 = NDWWebBot(3)
