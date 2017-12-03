@@ -9,15 +9,14 @@ from threading import Thread
 from queue import Queue
 import easywebdav as wd
 import random
+import zipfile
 
 download_q = Queue()
 upload_q = Queue()
 
-start = datetime.strptime("9-2-2017", "%d-%m-%Y")
+start = datetime.strptime("09-02-2017", "%d-%m-%Y")
 stop = datetime.strptime("30-11-2017", "%d-%m-%Y")
 
-download_q.put(('historicaldata/intensityandspeed', 'Intensiteiten en snelheden', '31-1-2017', '31-1-2017'))
-download_q.put(('historicaldata/intensityandspeed', 'Intensiteiten en snelheden', '2-02-2017', '2-02-2017'))
 while start < stop:
     download_q.put(('historicaldata/intensityandspeed', 'Intensiteiten en snelheden', start.strftime("%d-%m-%Y"),
                     start.strftime("%d-%m-%Y")))
@@ -32,8 +31,13 @@ class STACKUploader(Thread):
         self.id = id
 
     def __connect(self):
-        self.stack = wd.connect(host="WEBADRESS", protocol="https", verify_ssl=True,
-                                username='ACCOUNTNAME', password='PASSWORD')
+        server_parameters = {'host': 'WEBADRESS',
+                             'username': 'ACCOUNTNAME',
+                             'password': 'PASSWORD'}
+        print(datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
+              + " Thread: " + str(self.id) + ' Connecting using: ' + str(server_parameters))
+        self.stack = wd.connect(host=server_parameters['host'], protocol="https", verify_ssl=True,
+                                username=server_parameters['username'], password=server_parameters['password'])
 
     def upload(self, folder, file):
         self.stack.upload(file, "/remote.php/webdav/" + folder + '/' + file)
@@ -44,10 +48,11 @@ class STACKUploader(Thread):
             self.__connect()
             if not upload_q.empty():
                 folder, file = upload_q.get()
-                print('Uploading ' + file + '...')
+                print(datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
+                      + " Thread: " + str(self.id) + ' Uploading ' + file + '...')
                 self.upload(folder, file)
                 print(datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
-                  + " Thread: " + str(self.id) + ' Finished Uploading ' + file + '...')
+                      + " Thread: " + str(self.id) + ' Finished Uploading ' + file + '...')
                 os.remove(file)
             time.sleep(30)
 
@@ -115,19 +120,19 @@ class NDWWebBot(Thread):
             return
         duration = time.time() - self.start_time
         progress_size = int(count * block_size)
-        total = total_size / (1024 * 1024)
         transfer_rate = (float(count * block_size) / 1000) / duration  # kbytes/s
 
-        if duration > 7200:
+        # more than 3 hours
+        if duration > 10800:
             raise Exception('Download took too long')
 
         if count % 1000 == 0:
             print(datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
-                  + " Thread: " + str(self.id) + " ...%d/%d MB, %d KB/s, %d seconds passed" %
-                  (progress_size / (1024 * 1024), total, transfer_rate, duration))
+                  + " Thread: " + str(self.id) + " ...%d MB, %d KB/s, %d seconds passed" %
+                  (progress_size / (1024 * 1024), transfer_rate, duration))
 
     def run(self):
-        time.sleep(random.random())
+        time.sleep(self.id)
         while not download_q.empty():
             self.__open_browser()
             folder, data_type, start_date, end_data = download_q.get()
@@ -150,21 +155,27 @@ class NDWWebBot(Thread):
             connected = False
             while not connected:
                 try:
-                    # Download the file
-                    request.urlretrieve(link, start_date + '.zip', self.reporthook)
+                    if data_type == 'Intensiteiten en snelheden':
+                        filename = start_date + '.zip'
+                    else:
+                        filename = 'r' + start_date + '.zip'
 
-                    # Sometimes it downloads a empty file
-                    file_size = os.stat(start_date + '.zip').st_size
-                    if file_size <= 800000000:
-                        os.remove(start_date + '.zip')
-                        raise Exception('Downloading again')
+                    # Download the file
+                    request.urlretrieve(link, filename, self.reporthook)
+
+                    # Sometimes the files are corrupted -_- ...
+                    try:
+                        zip = zipfile.ZipFile(filename)
+                    except zipfile.BadZipFile:
+                        os.remove(filename)
+                        raise Exception("Corrupted zip")
 
                     connected = True
                 except:
                     time.sleep(30)
                     continue
 
-            upload_q.put((folder, start_date + '.zip'))
+            upload_q.put((folder, filename))
             time.sleep(10)
 
 
