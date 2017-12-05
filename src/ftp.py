@@ -22,12 +22,24 @@ class FTPStream(Thread):
                                   "incidents.xml.gz"]
 
     def __connect_ftp(self):
-        self.ftp = ftplib.FTP('opendata.ndw.nu')
-        self.ftp.login()
+        try:
+            self.ftp = ftplib.FTP('opendata.ndw.nu')
+            self.ftp.login()
+        # Timeout or loss of internet connection
+        except :
+            print("Failed to connect to the ftp server")
+            time.sleep(5)
+            self.__connect_ftp()
 
     def __connect_stack(self):
-        self.stack = wd.connect(host="plengkeek.stackstorage.com", protocol="https", verify_ssl=True,
-                                username='projectgroup', password='wearethebest')
+        try:
+            self.stack = wd.connect(host="ADDRESS", protocol="https", verify_ssl=True,
+                                    username='NAME', password='PASS')
+        # Timeout or loss of internet connection
+        except:
+            print("Failed to connect to STACK")
+            time.sleep(5)
+            self.__connect_stack()
 
     def run(self):
         while True:
@@ -56,14 +68,24 @@ class FTPStream(Thread):
                     IncidentConverter(file_name[:-3])
                     os.remove(file_name) # Downloaded file
                     os.remove(file_name[:-3]) # Decompressed file
-                    file_name = file_name[:-6] + 'txt'
+                    file_name = file_name[:-6] + 'txt' # name of processed file
+                    try:
+                        self.stack.upload(file_name, "/remote.php/webdav/" + f.split('.')[0] + '/processed/' + file_name)
+                    except:
+                        print('Failed to upload')
+                        time.sleep(5)
+                        pass
 
-                # Uploading to STACK
-                self.stack.upload(file_name, "/remote.php/webdav/" + f.split('.')[0] + '/' + file_name)
-                os.remove(file_name)
+                try:
+                    self.stack.upload(file_name, "/remote.php/webdav/" + f.split('.')[0] + '/' + file_name)
+                    os.remove(file_name)
+                except:
+                    print('Failed to upload')
+                    time.sleep(5)
+                    pass
 
             # Wait for a minute
-            print('Running for ' + str(self.ticks) + ' minutes')
+            print('Running for ' + str(self.ticks) + ' minutes', end='\r')
             time.sleep(60 - (time.time() - t0))
 
             self.ticks += 1
