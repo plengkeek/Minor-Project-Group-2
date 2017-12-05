@@ -1,5 +1,6 @@
 from lxml import etree
 from functools import partial
+import os
 
 
 class CSVConverter:
@@ -8,6 +9,8 @@ class CSVConverter:
 
         try:
             self.__xml_tree = etree.parse(file)
+            os.remove(file)
+
             self.__process()
             self.__write_to_file(file)
 
