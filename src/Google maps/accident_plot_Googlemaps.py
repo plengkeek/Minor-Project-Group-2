@@ -2,7 +2,6 @@ import os
 import numpy as np
 import scipy.cluster.vq as clust
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
 import pygmaps
 import webbrowser
 # import matplotlib as mpl
@@ -11,7 +10,7 @@ import webbrowser
 k = int(input("Enter the number of clusters to create: [1-100]"))
 # raw_input("System ready. Press ENTER to start")
 
-file_path = 'write its name'
+file_path = 'F:\Minor project DATA\Converted\\'
 # XML_path = 'D:\Minor project DATA\Accidents\\'
 
 files = os.listdir(file_path)
