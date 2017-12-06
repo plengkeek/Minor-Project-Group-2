@@ -112,9 +112,9 @@ class Logger(Thread):
     def run(self):
         while True:
             if len(self.queue) != 0:
-                time, message = self.queue.popleft()
+                t, message = self.queue.popleft()
                 with open('log.txt', 'a') as log:
-                    log.write(time + ' ' + message + '\n')
+                    log.write(t + ' ' + message + '\n')
                     log.flush()
 
                 # Clear the console
@@ -124,16 +124,24 @@ class Logger(Thread):
                 print('|---------------------------------------------------------------|')
                 for line in lines[-20:]:
                     print("| " + line[:-1])
+            else:
+                time.sleep(5)
 
 
-os.remove('log.txt')
+try:
+    os.remove('log.txt')
+except Exception as e:
+    print(e)
+
 log_q = deque(maxlen=20)
 logger = Logger(log_q)
 logger.start()
-time.sleep(2)
 
 stream = FTPStream(log_q)
 stream.start()
+
+
+
 
 
 
