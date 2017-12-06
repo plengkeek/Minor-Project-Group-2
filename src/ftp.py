@@ -92,7 +92,7 @@ class FTPStream(Thread):
                     self.__log('Processing incidents.xml.gz')
                     IncidentConverter(file_name[:-3])
                     os.remove(file_name[:-3])  # Decompressed file
-                    self.__upload_stack(f.split('.')[0], file_name[:-6] + 'txt')
+                    self.__upload_stack(f.split('.')[0] + '/processed', file_name[:-6] + 'txt')
                     os.remove(file_name[:-6] + 'txt')
 
                 self.__upload_stack(f.split('.')[0], file_name)
@@ -126,6 +126,7 @@ class Logger(Thread):
                     print("| " + line[:-1])
 
 
+os.remove('log.txt')
 log_q = deque(maxlen=20)
 logger = Logger(log_q)
 logger.start()
