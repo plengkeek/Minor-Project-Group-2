@@ -6,7 +6,7 @@ class IncidentConverter(CSVConverter):
         CSVConverter.__init__(self, file)
 
     def _process(self):
-        situation_root = self._xpath(self._xml_tree, "//d:situation")
+        situation_root = self._xpath(self._xml_tree, "//d:measurementSiteRecord")
 
         for i in range(len(situation_root)):
             situation_xpath = partial(self._xpath, situation_root[i])
@@ -14,6 +14,7 @@ class IncidentConverter(CSVConverter):
             time_txt = situation_xpath("./d:situationVersionTime")[0].text
             latitude_txt = situation_xpath("./d:situationRecord/d:groupOfLocations/d:locationForDisplay/d:latitude")[0].text
             longitude_txt = situation_xpath("./d:situationRecord/d:groupOfLocations/d:locationForDisplay/d:longitude")[0].text
+
 
             try:
                 obstruction_txt = situation_xpath("./d:situationRecord/d:vehicleObstructionType")[0].text
