@@ -15,15 +15,28 @@ class HistoricalConverter(CSVConverter):
             id = situation_root[i].attrib["id"]
             latitude_txt = situation_xpath(".//d:latitude")[0].text
             longitude_txt = situation_xpath(".//d:longitude")[0].text
-            for index in situation_xpath(".//d:measurementSpecificCharacteristics"):
-                index_data = [x.text for x in index]
-
-
 
             try:
                 lanes = situation_xpath(".//d:measurementSiteNumberOfLanes")[0].text
             except IndexError:
                 lanes = "INVALID NUMBER OF LANES"
+
+            char = situation_xpath(".//d:measurementSpecificCharacteristics/d:measurementSpecificCharacteristics")
+            for index in char:
+            # for index in situation_xpath(".//d:measurementSpecificCharacteristics/d:measurementSpecificCharacteristics"):
+                vehicle_type = self._xpath(char, ".//d:vehicleType")
+                if vehicle_type.text == "anyVehicle":
+                    index_root = self._xpath(char, "./d:specificLane")
+
+
+                else:
+                    continue
+                index_data = [x.text for x in index]
+                print index_data
+
+
+
+
 
             string_to_append = str(id) + "," + str(latitude_txt) + "," + str(longitude_txt) + "," + str(lanes)+ ";"
 
