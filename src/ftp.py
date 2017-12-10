@@ -32,6 +32,7 @@ class FTPStream(Thread):
         try:
             self.__log('Connecting to FTP Server')
             self.ftp = ftplib.FTP('opendata.ndw.nu')
+            self.ftp.set_debuglevel(2)
             self.__log('Logging into FTP Server')
             self.ftp.login()
         except Exception as e:
@@ -100,7 +101,9 @@ class FTPStream(Thread):
 
             # Wait for a minute
             self.__log('Running for ' + str(self.ticks) + ' minutes')
-            time.sleep(60 - (time.time() - t0))
+            executing_time = 60 - (time.time() - t0)
+            if executing_time > 0:
+                time.sleep(60 - (time.time() - t0))
             self.ticks += 1
 
 
@@ -139,9 +142,3 @@ logger.start()
 
 stream = FTPStream(log_q)
 stream.start()
-
-
-
-
-
-
