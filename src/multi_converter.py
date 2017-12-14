@@ -2,9 +2,6 @@ import multiprocessing as mp
 from csv_converter import CSVConverter
 from functools import partial
 import glob
-import gzip
-import os
-import shutil
 import timeit
 
 
@@ -46,6 +43,7 @@ def process_function(file):
     NOTE: they should have this signature: Converter(file: string) -> None"""
     CSVConverter(file)
 
+
 if __name__ == '__main__':
     # start time of the script, used to track performance (computational time)
     start_t = timeit.default_timer()
@@ -54,7 +52,7 @@ if __name__ == '__main__':
     is_running = True
     empty_queue = False
     i = 0
-    no_of_cpus = 6
+    no_of_cpus = 4
     no_of_processes = 0
 
     worker_id = partial(get_worker_id, no_of_cpus)
@@ -77,15 +75,6 @@ if __name__ == '__main__':
             if next_process != "DONE":
                 no_of_processes += 1
                 i = worker_id(i)
-
-                # unzip the .gz file and write it to a .xml file
-                with gzip.open(next_process, 'rb') as f_in, open(next_process[:-3] + '.xml', 'wb') as f_out:
-                        shutil.copyfileobj(f_in, f_out)
-
-                # remove the .gz file to save hard disk space. The file is not used from this point onward
-                os.remove(next_process)
-                # get the pathname of the .xml file to process
-                next_process = next_process[:-3] + '.xml'
 
                 # start a new process and execute it
                 print("[NEW PROCESS] Worker " + str(i) + " on " + next_process)

@@ -1,29 +1,35 @@
 from lxml import etree
 from functools import partial
+import io
+import gzip
 import os
 
 
 class CSVConverter:
     def __init__(self, file=None):
         self.__buffer_to_write = []
+        file_name = file
+        file = io.BytesIO(open(file, 'rb').read())
+        file = gzip.GzipFile(fileobj=file)
 
         try:
             self.__xml_tree = etree.parse(file)
-            os.remove(file)
 
             self.__process()
-            self.__write_to_file(file)
+            self.__write_to_file(file_name)
 
-        except OSError:
-            print("Couldn't open the .xml file: " + file)
+        except Exception as e:
+            print(e)
 
     def __write_to_file(self, file):
+        if not os.path.exists(file[:-20] + 'txts'):
+            os.mkdir(file[:-20] + 'txts')
+        file = file[:-20] + 'txts\\' + file[-20:]
         file = file[:-3]
-        file += 'txt'
+        file += '.txt'
 
         with open(file, 'w') as write_file:
             write_file.write('\n'.join(self.__buffer_to_write))
-            # write_file.writelines(self.__buffer_to_write)
 
     def __process(self):
         """Process the data by extracting the data from the XML file and writing it to a buffer"""
