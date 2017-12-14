@@ -48,6 +48,7 @@ class HistoricalConverter(CSVConverter):
             except IndexError:
                 lanes = "INVALID NUMBER OF LANES"
 
+
             # Information by index
             root_indices = situation_xpath("./d:measurementSpecificCharacteristics")
             # if id == "PNH03_N201L_73.52-71.35":
@@ -60,6 +61,8 @@ class HistoricalConverter(CSVConverter):
             #     except IndexError:
             #         lane = "INVALID LANE"
             #     print str(lane)
+
+
             all_indices = ""
             for ix in range(len(root_indices)):
                 current_index = partial(self._xpath,root_indices[ix])
@@ -97,4 +100,4 @@ class HistoricalConverter(CSVConverter):
                 self._buffer_to_write.append(string_to_append)
 
 
-HistoricalConverter('C:\Users\TUDelft SID\Documents\\2017-2018\\2nd quarter\Minorproject software design and application\GitHub\src\Historical\sensors.xml')
+HistoricalConverter('F:\Minor project DATA\sensors')

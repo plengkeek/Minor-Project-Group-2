@@ -17,7 +17,7 @@ class CSVConverter:
     def _write_to_file(self, file):
         file = file.split('\\')
         file = file[-1]
-        file = "C:\Users\TUDelft SID\Documents\\2017-2018\\2nd quarter\Minorproject software design and application\GitHub\src\Historical\sensors_results\Converted\\" + file[:-3]
+        file = "F:\Minor project DATA" + file[:-3]
         file += 'txt'
         with open(file, 'w') as write_file:
             write_file.write('\n'.join(self._buffer_to_write))
