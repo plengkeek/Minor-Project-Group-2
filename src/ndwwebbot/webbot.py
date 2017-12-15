@@ -6,6 +6,7 @@ from collections import deque
 from datetime import datetime, timedelta
 from queue import Queue
 from threading import Thread
+import shutil
 
 from PIL import Image
 from logger import Logger
@@ -14,13 +15,13 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from twocaptchaapi import TwoCaptchaApi
 
-from ndwwebbot.stack import STACK
+from stack import STACK
 
 download_q = Queue()
 upload_q = Queue()
 log_q = deque(maxlen=3*10)
 
-start = datetime.strptime("16-02-2017", "%d-%m-%Y")
+start = datetime.strptime("08-05-2017", "%d-%m-%Y")
 stop = datetime.strptime("30-11-2017", "%d-%m-%Y")
 
 while start < stop:
@@ -41,21 +42,26 @@ class NDWWebBot(Thread):
         self.url = 'http://83.247.110.3/OpenDataHistorie'
         self.open_browser()
 
-        self.api = TwoCaptchaApi('API_KEY')
+        self.api = TwoCaptchaApi('b51dc904b4f0afc3693977440d8e2e02')
 
     def download(self, link, file_name, chunk_size):
         try:
-            self.__log('Started downloading ' + file_name)
-            with urllib.request.urlopen(link, timeout=10) as response, open(file_name, 'wb') as out_file:
-                while True:
-                    buf = response.read(chunk_size * 1024)
-                    if not buf:
-                        break
-                    out_file.write(buf)
-                    out_file.flush()
-                    self.__log('Downloaded ' + str(int(os.stat(file_name).st_size / (1024*1024))) + ' MB')
+            if shutil.disk_usage('./')[2]/1000000000 > 1.4:
+                self.__log('Started downloading ' + file_name)
+                with urllib.request.urlopen(link, timeout=10) as response, open(file_name, 'wb') as out_file:
+                    while True:
+                        buf = response.read(chunk_size * 1024)
+                        if not buf:
+                            break
+                        out_file.write(buf)
+                        out_file.flush()
+                        self.__log('Downloaded ' + str(int(os.stat(file_name).st_size / (1024*1024))) + ' MB')
+            else:
+                self.__log('Not enough space, waiting for 2 minutes')
+                time.sleep(120)
+                raise Exception('Not an exception')
+
         except Exception as e:
-            print(e)
             self.__log(str(e))
             time.sleep(5)
             self.download(link, file_name, chunk_size)
@@ -65,7 +71,7 @@ class NDWWebBot(Thread):
 
     def open_browser(self):
         self.__log('Opening browser')
-        self.browser = webdriver.Chrome('/home/pleng/Desktop/chromedriver')
+        self.browser = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver")
         self.__log('Loading webpage')
         self.browser.get(self.url)
         self.__log('Scrolling down')
@@ -156,7 +162,7 @@ class NDWWebBot(Thread):
     def check_file(self, file_path):
         try:
             zip = zipfile.ZipFile(file_path)
-            if len(zip.filelist) == 1441:
+            if len(zip.filelist) >= (1441 - 1441*0.9):
                 return 'Good'
             else:
                 return 'Bad'
@@ -215,9 +221,9 @@ class NDWWebBot(Thread):
                 time.sleep(30)
 
 
-stack_parameters = {'host': 'HOST',
-                    'username': 'USERNAME',
-                    'password': 'PASSWORD'}
+stack_parameters = {'host': 'plengkeek.stackstorage.com',
+                    'username': 'projectgroup',
+                    'password': 'wearethebest'}
 stack = STACK(0, upload_q, log_q, stack_parameters)
 stack.start()
 
@@ -231,4 +237,3 @@ bot3 = NDWWebBot(3, log_q)
 bot1.start()
 bot2.start()
 bot3.start()
-
