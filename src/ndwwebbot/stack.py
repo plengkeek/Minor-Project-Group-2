@@ -28,6 +28,9 @@ class STACK(Thread):
                                 username=self.stack_parameters['username'],
                                 password=self.stack_parameters['password'])
 
+    def ls(self, remote):
+        return self.stack.ls(remote)
+
     def upload(self, folder, file):
         try:
             self.__log('Uploading to STACK')

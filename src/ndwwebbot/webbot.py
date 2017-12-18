@@ -7,28 +7,14 @@ from datetime import datetime, timedelta
 from queue import Queue
 from threading import Thread
 import shutil
-
 from PIL import Image
-from logger import Logger
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from twocaptchaapi import TwoCaptchaApi
 
 from stack import STACK
-
-download_q = Queue()
-upload_q = Queue()
-log_q = deque(maxlen=3*10)
-
-start = datetime.strptime("08-05-2017", "%d-%m-%Y")
-stop = datetime.strptime("30-11-2017", "%d-%m-%Y")
-
-while start < stop:
-    download_q.put(('historicaldata/intensityandspeed', 'Intensiteiten en snelheden', start.strftime("%d-%m-%Y"),
-                    start.strftime("%d-%m-%Y")))
-    download_q.put(('historicaldata/traveltime', 'Reistijden', start.strftime("%d-%m-%Y"), start.strftime("%d-%m-%Y")))
-    start = start + timedelta(days=1)
+from logger import Logger
 
 
 class NDWWebBot(Thread):
@@ -224,8 +210,31 @@ class NDWWebBot(Thread):
 stack_parameters = {'host': 'plengkeek.stackstorage.com',
                     'username': 'projectgroup',
                     'password': 'wearethebest'}
+
+download_q = Queue()
+upload_q = Queue()
+log_q = deque(maxlen=3*10)
+
 stack = STACK(0, upload_q, log_q, stack_parameters)
 stack.start()
+
+start = datetime.strptime("01-01-2017", "%d-%m-%Y")
+stop = datetime.strptime("20-12-2017", "%d-%m-%Y")
+
+traveltime_dates = stack.ls('/remote.php/webdav/historicaldata/traveltime')
+traveltime_dates = [file[0][-14:-4] for file in traveltime_dates]
+
+intensityandspeed_dates = stack.ls('/remote.php/webdav/historicaldata/intensityandspeed')
+intensityandspeed_dates = [file[0][-14:-4] for file in intensityandspeed_dates]
+
+while start < stop:
+    if start.strftime("%d-%m-%Y") not in traveltime_dates:
+        download_q.put(
+            ('historicaldata/traveltime', 'Reistijden', start.strftime("%d-%m-%Y"), start.strftime("%d-%m-%Y")))
+    if start.strftime("%d-%m-%Y") not in intensityandspeed_dates:
+        download_q.put(('historicaldata/intensityandspeed', 'Intensiteiten en snelheden', start.strftime("%d-%m-%Y"),
+            start.strftime("%d-%m-%Y")))
+    start = start + timedelta(days=1)
 
 logger = Logger(log_q)
 logger.start()
