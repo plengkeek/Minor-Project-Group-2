@@ -1,0 +1,4 @@
+webdav_hostname=https://plengkeek.stackstorage.com
+webdav_login=projectgroup
+webdav_password=wearethebest
+root=/remote.php/webdav
