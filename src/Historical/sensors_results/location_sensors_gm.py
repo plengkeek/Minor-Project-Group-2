@@ -22,7 +22,7 @@ for sensor in sensors:
     # general_dict[id] = general[1:]
     latitude.append(float(general[2]))
     longitude.append(float(general[3]))
-print longitude
+# print longitude
 
 # Set window position and zoom level
 # Define map object: lat, lon, zoom level
