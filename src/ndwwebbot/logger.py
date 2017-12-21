@@ -28,5 +28,3 @@ class Logger(Thread):
                     print("| " + line[:-1])
             else:
                 time.sleep(1)
-
-

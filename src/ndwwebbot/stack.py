@@ -54,3 +54,5 @@ class STACK(Thread):
                     continue
                 else:
                     time.sleep(30)
+            else:
+                time.sleep(1)
