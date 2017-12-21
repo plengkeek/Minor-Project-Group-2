@@ -1,5 +1,6 @@
-from csv_converter import CSVConverter
 from functools import partial
+
+from ftp.csv_converter import CSVConverter
 
 
 class IncidentConverter(CSVConverter):

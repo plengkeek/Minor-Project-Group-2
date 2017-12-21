@@ -1,12 +1,14 @@
 import ftplib
-from threading import Thread
-import time, os
-import easywebdav as wd
 import gzip
-from incident_converter import IncidentConverter
-from datetime import datetime
+import os
+import time
 from collections import deque
+from datetime import datetime
+from threading import Thread
 
+import easywebdav as wd
+
+from ftp.incident_converter import IncidentConverter
 
 '''''
 Simple Thread that downloads files from the FTP server every minute and stores it to STACK for later analysis.
