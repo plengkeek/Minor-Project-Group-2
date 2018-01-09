@@ -9,7 +9,7 @@ from datetime import datetime
 from logger import Logger
 from multi_converter import *
 
-from v2.stack import STACK
+from stack import STACK
 
 if __name__ == '__main__':
 
@@ -41,6 +41,7 @@ if __name__ == '__main__':
             for file in zip.namelist():
                 if file.startswith(to_be_processed[0][:-4] + '/'):
                     zip.extract(file, './')
+            zip.close()
 
         log(log_queue, 'Converting ' + to_be_processed[0])
         multiconverter('./' + to_be_processed[0][:-4] + '/')

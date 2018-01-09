@@ -2,7 +2,7 @@ import glob
 import multiprocessing as mp
 from functools import partial
 
-from v2.csv_converter import CSVConverter
+from csv_converter import CSVConverter
 
 
 def writer(queue, dir_path):
@@ -48,7 +48,7 @@ def multiconverter(dir):
     is_running = True
     empty_queue = False
     i = 0
-    no_of_cpus = 8
+    no_of_cpus = 20
     no_of_processes = 0
 
     worker_id = partial(get_worker_id, no_of_cpus)
