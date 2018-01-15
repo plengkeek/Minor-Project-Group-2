@@ -3,10 +3,11 @@ import gzip
 import os
 import time
 from threading import Thread
-from queueu import queue
+from queue_mod import queue
 
 import easywebdav as wd
 
+from csv_converter import CSVConverter
 from incident_converter import IncidentConverter
 
 '''''
@@ -72,12 +73,18 @@ class FTPStream(Thread):
 
                     IncidentConverter(file_name[:-3])
                     os.remove(file_name[:-3])  # Decompressed file
+                    os.remove(file_name)  # Downloaded file
                     self.queue.put(str(file_name[:-6] + 'txt'))
 
-                self.queue.put(str(file_name))
-
-            while self.queue.size() != 0:
-                print(self.queue.get())
+                else:
+                    with gzip.open(file_name, 'rb') as compressed:
+                        with open(file_name[:-3], 'wb') as decompressed:
+                            for line in compressed:
+                                decompressed.write(line)
+                    CSVConverter(file_name[:-3])
+                    os.remove(file_name[:-3])  # Decompressed file
+                    os.remove(file_name)  # Downloaded file
+                    self.queue.put(str(file_name[:-6]) + 'txt')
 
             # Wait for a minute
             executing_time = 60 - (time.time() - t0)
