@@ -3,7 +3,7 @@
 # FG, DR, RH, VVN, VVX
 
 
-def process_knmi(file):
+def process_knmi(file, output_path):
     """Convert a KNMI weather data text file to a PySpark DataFrame"""
 
     def change_format(x):
@@ -29,9 +29,6 @@ def process_knmi(file):
     # filter out the correct data
     rdd = rdd.filter(lambda x: "#" not in x)\
                 .map(lambda x: change_format(x))\
-                .saveAsTextFile("/home/thijs-gerrit/Documents/Minor-Project-Data/KNMI")
+                .saveAsTextFile(output_path)
 
     print("Done")
-
-
-process_knmi("/home/thijs-gerrit/Documents/Minor-Project-Data/KNMI.txt")
