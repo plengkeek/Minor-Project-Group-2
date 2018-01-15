@@ -1,0 +1,6 @@
+\chapter{Traffic Analysis}
+\textit{In the context of the analysis of the traffic data in order to get a prediction of conditions, this chapter is to explain some critical decisions that were taken to detect the presence of a traffic jam.}
+
+\bigskip
+
+The first step that was taken was to process historical data and feed them to a machine learning algorithm from the SparkML library. The input to this algorithm is data containing date and time, traffic conditions per sensor and local weather data. The output consists of two values, corresponding to traffic conditions (i.e. traffic flow and average velocity) forecasted for the desired future time interval. That data, though, does not provide any insight on the presence of a congestion, being a congestion defined as \textit{a situation where the local vehicle flow is greater than the local bottleneck flow}. Two models were considered to attempt a successful detection of a traffic jam: one based on a \textbf{speed threshold} and another one based on the analysis of the gradient of the data.
