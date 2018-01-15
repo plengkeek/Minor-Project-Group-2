@@ -25,8 +25,8 @@ class FTPStream(Thread):
         self.files_to_download = ["trafficspeed.xml.gz",
                                   "traveltime.xml.gz",
                                   "incidents.xml.gz"]
-        self.__connect_stack()
 
+    # Connect to the ftp server and login
     def __connect_ftp(self):
         try:
             self.ftp = ftplib.FTP('opendata.ndw.nu')
@@ -36,10 +36,7 @@ class FTPStream(Thread):
             time.sleep(5)
             self.__connect_ftp()
 
-    def __connect_stack(self):
-        self.stack = wd.connect(host="ADDRESS", protocol="https", verify_ssl=True,
-                                username='USERNAME', password='PASSWORD')
-
+    # Method to download a file from FTP server
     def __download_ftp(self, f):
         try:
             timestr = time.strftime("%Y%m%d%H%M%S", time.localtime())
@@ -53,7 +50,7 @@ class FTPStream(Thread):
             self.__connect_ftp()
             self.__download_ftp(f)
 
-
+    # Main loop
     def run(self):
         while True:
             t0 = time.time()
@@ -62,9 +59,11 @@ class FTPStream(Thread):
             if self.ftp is None or self.ticks % 10 == 0:
                 self.__connect_ftp()
 
+            # Download every file
             for f in self.files_to_download:
                 file_name = self.__download_ftp(f)
 
+                # Incidents is different and has its own converter
                 if f == "incidents.xml.gz":
                     with gzip.open(file_name, 'rb') as compressed:
                         with open(file_name[:-3], 'wb') as decompressed:
@@ -74,6 +73,7 @@ class FTPStream(Thread):
                     IncidentConverter(file_name[:-3])
                     os.remove(file_name[:-3])  # Decompressed file
                     os.remove(file_name)  # Downloaded file
+                    # Put the file name in a queue so other threads know its done
                     self.queue.put(str(file_name[:-6] + 'txt'))
 
                 else:
