@@ -3,8 +3,11 @@ import os
 import pygmaps
 import webbrowser
 
+# Functions which carries the analysis of whether there is a traffic jam or not and with which probability
 def congestion_analysis(Q2):
+    # Folder containing the files to be analyzed
     LA_folder = "C:\Users\TUDelft SID\Documents\\2017-2018\\2nd quarter\Minorproject software design and application\Final complete process\MLA output"
+    # Folder containing the average speed for all the sensors
     file_average_speeds = "C:\Users\TUDelft SID\Documents\\2017-2018\\2nd quarter\Minorproject software design and application\Final complete process\Statistical analysis\\speeds_corrected_pure.txt"
     locations_file = "C:\Users\TUDelft SID\Documents\\2017-2018\\2nd quarter\Minorproject software design and application\Final complete process\Statistical analysis\\lat_and_lon.txt"
 
