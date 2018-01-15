@@ -1,64 +1,37 @@
-# coding: utf-8
-
-# This notebook uses two implicitly defined variables, namely: sc and spark. These are used to work with SPARK RDD and SPARK DataFrame API
-
-# In[79]:
 import pandas
 import pyspark.sql as sql
 from pyspark.sql.types import StringType, FloatType, StructType, StructField, IntegerType
 
-# Specify the paths where the various data files can be found.
-# - traffic_path: path that points to the folder with the text files that contain the measurements (extracted from the XML files provided by the NDW)
-# - weather_path: path that point to the folder with text files containing the weather measurements from the KNMI
-# - linked_path: path to a text file that lists the three closest weather stations for every traffic camera
-# - speed_path: text that specifies wich indices of the text file from `traffic_path` should be used to compute a weighted average
-# - flow_path: similar to `speed_path`, only for the traffic flow values
 
-# In[80]:
-
-
-def data_prep(traffic_path="/home/thijs-gerrit/Desktop/p01-01-2017/*.txt",
-              weather_path="/home/thijs-gerrit/Documents/KNMI/*",
-              linked_path="/home/thijs-gerrit/Documents/station.txt",
-              speed_path="/home/thijs-gerrit/Documents/trafficspeed.txt",
-              flow_path="/home/thijs-gerrit/Documents/trafficflow.txt"):
+def data_prep(
+        q1, q2,
+        weather_path="/home/thijs-gerrit/Documents/KNMI/*",
+        linked_path="/home/thijs-gerrit/Documents/Minor-Project-Data/Utilities/station.txt",
+        speed_path="/home/thijs-gerrit/Documents/Minor-Project-Data/Utilities/trafficspeed.txt",
+        flow_path="/home/thijs-gerrit/Documents/Minor-Project-Data/Utilities/trafficflow.txt"
+):
+    traffic_path = q1.get()
 
     # Define functions that split the data. These are made so that for every line only a single split has to be performed instead of multiple
-
-    # In[81]:
-
     def id_split(x):
         temp = x.split(',')
         return (temp[0], temp[1:])
-
-    # In[83]:
 
     def split_traffic_data(x):
         temp = x.split(";")
         return (temp[1], [temp[0]] + temp[2:-1])
 
     # load the files from `speed_path` and `flow_path` and join them
-
-    # In[82]:
-
     speed = sc.textFile(speed_path).map(lambda x: id_split(x))
     flow = sc.textFile(flow_path).map(lambda x: id_split(x))
     spd_flw_indices = flow.join(speed)
 
     # load the data from the text files coming from `traffic_path`
-
-    # In[84]:
-
     traffic_data = sc.textFile(traffic_path).map(
         lambda x: split_traffic_data(x))
 
     # # Compute the average speed per location and timestamp
-    #
-
     # this function computes the weighted average speed which will function as the target for the machine learning model
-
-    # In[3]:
-
     def avg_speed(x):
         """
         Compute a weighted average of the traffic speed
@@ -103,8 +76,6 @@ def data_prep(traffic_path="/home/thijs-gerrit/Desktop/p01-01-2017/*.txt",
         else:
             return -1.0
 
-    # In[87]:
-
     def timestamp(x):
         """
         Extract the timestamp from a string
@@ -120,23 +91,16 @@ def data_prep(traffic_path="/home/thijs-gerrit/Desktop/p01-01-2017/*.txt",
 
         return list(map(int, timestamp))
 
-    # In[1]:
-
     def speed_ID_pair(x):
         """
         Pair the ID with the average speed and timestamp
         """
         return [x[0]] + timestamp(x) + [avg_speed(x)]
 
-    # In[89]:
-
     average_speeds = spd_flw_indices.join(traffic_data).map(
         lambda x: speed_ID_pair(x))
 
     # convert the `average_speeds` from an rdd to a DataFrame, but first create a schema (or structure) for it
-
-    # In[90]:
-
     avg_speed_struct = StructType([
         StructField('ID', StringType(), False),
         StructField('Year', IntegerType(), False),
@@ -147,21 +111,14 @@ def data_prep(traffic_path="/home/thijs-gerrit/Desktop/p01-01-2017/*.txt",
         StructField('AvgSpeed', FloatType(), False)
     ])
 
-    # In[91]:
-
     avg_speed_frame = spark.createDataFrame(average_speeds, avg_speed_struct)
 
     # Create the structures for the different DataFrames. These structures specify the column names, data type and if the column is allowed to empty (nullable)
-
-    # In[92]:
-
     # create structure for the traffic speed DataFrame
     speed_struct = StructType([StructField("ID", StringType(), False)])
 
     for i in range(7):
         speed_struct.add("Index{0}".format(i + 1), IntegerType(), False)
-
-    # In[93]:
 
     # create structure for the traffic flow DataFrame
     flow_struct = StructType([StructField("ID", StringType(), False)])
@@ -169,15 +126,11 @@ def data_prep(traffic_path="/home/thijs-gerrit/Desktop/p01-01-2017/*.txt",
     for i in range(7):
         flow_struct.add("Index{0}".format(i + 1), IntegerType(), False)
 
-    # In[94]:
-
     # read traffic speed file
     speed_frame = spark.read.csv(path=speed_path, schema=speed_struct, sep=",")
 
     # read traffic flow file
     flow_frame = spark.read.csv(path=flow_path, schema=flow_struct, sep=",")
-
-    # In[95]:
 
     # create structure for the weather DataFrame
     weather_struct = StructType([
@@ -191,8 +144,6 @@ def data_prep(traffic_path="/home/thijs-gerrit/Desktop/p01-01-2017/*.txt",
         StructField("VVN", FloatType(), True),
         StructField("VVX", FloatType(), True)
     ])
-
-    # In[96]:
 
     # create structure for the linked station DataFrame
     linked_struct = StructType([
@@ -208,9 +159,6 @@ def data_prep(traffic_path="/home/thijs-gerrit/Desktop/p01-01-2017/*.txt",
         linked_struct.add("W{0}LAT".format(i + 1), FloatType(), False)
 
     # Next up, the data files need to be loaded into DataFrames. Here we specify which structure (or schema) is expected and what delimter is used in the data files
-
-    # In[97]:
-
     # read weather files
     weather_frame = spark.read.csv(
         path=weather_path, schema=weather_struct, sep=";")
@@ -219,17 +167,11 @@ def data_prep(traffic_path="/home/thijs-gerrit/Desktop/p01-01-2017/*.txt",
         path=linked_path, schema=linked_struct, sep=";")
 
     # We now register the DataFrames as table's, so SQL queries can be used
-
-    # In[98]:
-
     avg_speed_frame.createOrReplaceTempView("Speed")
     weather_frame.createOrReplaceTempView("Weather")
     linked_frame.createOrReplaceTempView("LinkedStations")
 
     # Here an SQL Query is used to join the tables and filter out the rows that are not usable
-
-    # In[99]:
-
     query = """
         SELECT L.TrafficID AS ID,
             S.AvgSpeed AS AvgSpeed,
@@ -258,9 +200,7 @@ def data_prep(traffic_path="/home/thijs-gerrit/Desktop/p01-01-2017/*.txt",
             S.AvgSpeed > -1
         """
 
-    # In[100]:
-
     panda_df = spark.sql(query).toPandas()
-    ids = panda_df.iloc[:, 0]
-    values = panda_df.iloc[:, 1:]
-    return [values, ids]
+    ids = panda_df.iloc[:, 0].values
+    values = panda_df.iloc[:, 1:].values
+    q2.put([values, ids])
