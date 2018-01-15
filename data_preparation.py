@@ -201,6 +201,7 @@ def data_prep(
         """
 
     panda_df = spark.sql(query).toPandas()
+    panda_df.sort_values(['Year','Month','Day','Hour','Minute'], inplace=True)
     ids = panda_df.iloc[:, 0].values
     values = panda_df.iloc[:, 1:].values
     q2.put([values, ids])
