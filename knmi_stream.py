@@ -1,6 +1,8 @@
 import requests
 from threading import Thread
 import time
+from process_knmi import process_knmi
+import os
 
 
 class KNMIStream(Thread):
@@ -50,4 +52,6 @@ class KNMIStream(Thread):
     def run(self):
         while True:
             self.download(file_name='knmiweatherdata.txt', stations='ALL', start_date='2017010101', end_date='')
+            process_knmi('knmiweatherdata.txt', './')
+            os.remove('knmiweatherdata.txt')
             time.sleep(3600)
