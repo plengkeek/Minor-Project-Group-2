@@ -1,8 +1,11 @@
 import requests
+from threading import Thread
+import time
 
 
-class KNMI:
+class KNMIStream(Thread):
     def __init__(self):
+        Thread.__init__(self)
         self.stations = [209, 210, 215, 225, 235, 240, 242, 248, 249, 251, 257, 258, 260, 265, 267, 269, 270, 273, 275,
                         277, 278, 279, 280, 283, 285, 286, 290, 308, 310, 311, 312, 313, 315, 316, 319, 323, 324, 330,
                         331, 340, 343, 344, 348, 350, 356, 370, 375, 377, 380, 391]
@@ -44,6 +47,7 @@ class KNMI:
         file.writelines(r.text)
         file.close()
 
-
-knmi = KNMI()
-knmi.download(file_name='knmiweatherdata.txt', stations='ALL', start_date='2017010101', end_date='')
+    def run(self):
+        while True:
+            self.download(file_name='knmiweatherdata.txt', stations='ALL', start_date='2017010101', end_date='')
+            time.sleep(3600)
